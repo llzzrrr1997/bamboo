@@ -6,6 +6,6 @@ import (
 )
 
 func FooControllerHandler(c *framework.Context) error {
-	c.Json(http.StatusOK, map[string]string{"msg": "hello,world!"})
+	c.SetStatus(http.StatusOK).Json(map[string]string{"msg": "hello,world!"})
 	return nil
 }
