@@ -6,6 +6,7 @@ package gin
 
 import (
 	"fmt"
+	"github.com/llzzrrr1997/bamboo/framework"
 	"html/template"
 	"net"
 	"net/http"
@@ -76,6 +77,8 @@ const (
 // Engine is the framework's instance, it contains the muxer, middleware and configuration settings.
 // Create an instance of Engine, by using New() or Default()
 type Engine struct {
+	// 容器
+	container framework.Container
 	RouterGroup
 
 	// Enables automatic redirection if the current route can't be matched but a
@@ -191,6 +194,7 @@ func New() *Engine {
 		secureJSONPrefix:       "while(1);",
 		trustedProxies:         []string{"0.0.0.0/0"},
 		trustedCIDRs:           defaultTrustedCIDRs,
+		container:              framework.NewBambooContainer(),
 	}
 	engine.RouterGroup.engine = engine
 	engine.pool.New = func() interface{} {
@@ -210,7 +214,7 @@ func Default() *Engine {
 func (engine *Engine) allocateContext() *Context {
 	v := make(Params, 0, engine.maxParams)
 	skippedNodes := make([]skippedNode, 0, engine.maxSections)
-	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes}
+	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes, container: engine.container}
 }
 
 // Delims sets template left and right delims and returns an Engine instance.

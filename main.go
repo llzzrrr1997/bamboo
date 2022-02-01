@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/llzzrrr1997/bamboo/framework/gin"
 	"github.com/llzzrrr1997/bamboo/framework/middleware"
+	"github.com/llzzrrr1997/bamboo/provider/demo"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ func main() {
 	core := gin.New()
 	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
+	_ = core.Bind(&demo.DemoServiceProvider{})
 	//core.Use(middleware.Timeout(3 * time.Second))
 	registerRouter(core)
 	server := &http.Server{
