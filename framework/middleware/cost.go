@@ -1,24 +1,25 @@
 package middleware
 
 import (
-	"github.com/llzzrrr1997/bamboo/framework"
+	"github.com/llzzrrr1997/bamboo/framework/gin"
 	"log"
 	"time"
 )
 
-func Cost() framework.ControllerHandler {
+func Cost() gin.HandlerFunc {
 	// 使用函数回调
-	return func(c *framework.Context) error {
+	return func(c *gin.Context) {
 		// 记录开始时间
 		start := time.Now()
 
+		log.Printf("api uri start: %v", c.Request.RequestURI)
 		// 使用next执行具体的业务逻辑
-		_ = c.Next()
+		c.Next()
 
 		// 记录结束时间
 		end := time.Now()
 		cost := end.Sub(start)
-		log.Printf("api uri: %v, cost: %v", c.GetRequest().RequestURI, cost.Seconds())
-		return nil
+		log.Printf("api uri end: %v, cost: %v", c.Request.RequestURI, cost.Seconds())
+
 	}
 }

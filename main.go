@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/llzzrrr1997/bamboo/framework"
+	"github.com/llzzrrr1997/bamboo/framework/gin"
 	"github.com/llzzrrr1997/bamboo/framework/middleware"
 	"log"
 	"net/http"
@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	core := framework.NewCore()
-	core.Use(middleware.Recovery())
+	core := gin.New()
+	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
 	//core.Use(middleware.Timeout(3 * time.Second))
 	registerRouter(core)
