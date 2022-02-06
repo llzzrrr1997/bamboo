@@ -1,0 +1,9 @@
+url: http://127.0.0.1:8080
+
+swagger_open: true
+
+dev_fresh: 1
+
+path:
+#  log_folder: "/Users/linzerong/goproject/src/github.com/llzzrrr1997/bamboo/storage/log"
+#  runtime_folder: "/Users/linzerong/goproject/src/github.com/llzzrrr1997/bamboo/storage/runtime"

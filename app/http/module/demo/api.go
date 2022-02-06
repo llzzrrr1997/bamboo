@@ -2,6 +2,7 @@ package demo
 
 import (
 	demoService "github.com/llzzrrr1997/bamboo/app/provider/demo"
+	"github.com/llzzrrr1997/bamboo/framework/contract"
 	"github.com/llzzrrr1997/bamboo/framework/gin"
 )
 
@@ -32,12 +33,14 @@ func NewDemoApi() *DemoApi {
 // @Success 200 array []UserDTO
 // @Router /demo/demo [get]
 func (api *DemoApi) Demo(c *gin.Context) {
-	//appService := c.MustMake(contract.AppKey).(contract.App)
-	//baseFolder := appService.BaseFolder()
-	users := api.service.GetUsers()
-	usersDTO := UserModelsToUserDTOs(users)
-	c.JSON(200, usersDTO)
-	//c.JSON(200, baseFolder)
+	configService := c.MustMake(contract.ConfigKey).(contract.Config)
+	password := configService.GetString("database.mysql.password")
+	logger := c.MustMakeLog()
+	logger.Info(c, "demo1", map[string]interface{}{
+		"api":  "demo/demo",
+		"user": "jianfengye",
+	})
+	c.JSON(200, password)
 }
 
 // Demo godoc

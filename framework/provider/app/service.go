@@ -1,10 +1,11 @@
 package app
 
 import (
-	"errors"
 	"flag"
+	"github.com/google/uuid"
 	"github.com/llzzrrr1997/bamboo/framework"
 	"github.com/llzzrrr1997/bamboo/framework/util"
+	"github.com/pkg/errors"
 	"path/filepath"
 )
 
@@ -12,25 +13,24 @@ import (
 type BambooApp struct {
 	container  framework.Container // 服务容器
 	baseFolder string              // 基础路径
+	appId      string              // 表示当前这个app的唯一id, 可以用于分布式锁等
+	configMap  map[string]string   // 配置加载
+}
+
+// AppID 表示这个App的唯一ID
+func (app BambooApp) AppID() string {
+	return app.appId
 }
 
 // Version 实现版本
-func (h BambooApp) Version() string {
+func (app BambooApp) Version() string {
 	return "0.0.3"
 }
 
 // BaseFolder 表示基础目录，可以代表开发场景的目录，也可以代表运行时候的目录
-func (h BambooApp) BaseFolder() string {
-	if h.baseFolder != "" {
-		return h.baseFolder
-	}
-
-	// 如果没有设置，则使用参数
-	var baseFolder string
-	flag.StringVar(&baseFolder, "base_folder", "", "base_folder参数, 默认为当前路径")
-	flag.Parse()
-	if baseFolder != "" {
-		return baseFolder
+func (app BambooApp) BaseFolder() string {
+	if app.baseFolder != "" {
+		return app.baseFolder
 	}
 
 	// 如果参数也没有，使用默认的当前路径
@@ -38,50 +38,80 @@ func (h BambooApp) BaseFolder() string {
 }
 
 // ConfigFolder  表示配置文件地址
-func (h BambooApp) ConfigFolder() string {
-	return filepath.Join(h.BaseFolder(), "config")
+func (app BambooApp) ConfigFolder() string {
+	if val, ok := app.configMap["config_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "config")
 }
 
 // LogFolder 表示日志存放地址
-func (h BambooApp) LogFolder() string {
-	return filepath.Join(h.StorageFolder(), "log")
+func (app BambooApp) LogFolder() string {
+	if val, ok := app.configMap["log_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.StorageFolder(), "log")
 }
 
-func (h BambooApp) HttpFolder() string {
-	return filepath.Join(h.BaseFolder(), "http")
+func (app BambooApp) HttpFolder() string {
+	if val, ok := app.configMap["http_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "http")
 }
 
-func (h BambooApp) ConsoleFolder() string {
-	return filepath.Join(h.BaseFolder(), "console")
+func (app BambooApp) ConsoleFolder() string {
+	if val, ok := app.configMap["console_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "console")
 }
 
-func (h BambooApp) StorageFolder() string {
-	return filepath.Join(h.BaseFolder(), "storage")
+func (app BambooApp) StorageFolder() string {
+	if val, ok := app.configMap["storage_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "storage")
 }
 
 // ProviderFolder 定义业务自己的服务提供者地址
-func (h BambooApp) ProviderFolder() string {
-	return filepath.Join(h.BaseFolder(), "provider")
+func (app BambooApp) ProviderFolder() string {
+	if val, ok := app.configMap["provider_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "provider")
 }
 
 // MiddlewareFolder 定义业务自己定义的中间件
-func (h BambooApp) MiddlewareFolder() string {
-	return filepath.Join(h.HttpFolder(), "middleware")
+func (app BambooApp) MiddlewareFolder() string {
+	if val, ok := app.configMap["middleware_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.HttpFolder(), "middleware")
 }
 
 // CommandFolder 定义业务定义的命令
-func (h BambooApp) CommandFolder() string {
-	return filepath.Join(h.ConsoleFolder(), "command")
+func (app BambooApp) CommandFolder() string {
+	if val, ok := app.configMap["command_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.ConsoleFolder(), "command")
 }
 
 // RuntimeFolder 定义业务的运行中间态信息
-func (h BambooApp) RuntimeFolder() string {
-	return filepath.Join(h.StorageFolder(), "runtime")
+func (app BambooApp) RuntimeFolder() string {
+	if val, ok := app.configMap["runtime_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.StorageFolder(), "runtime")
 }
 
 // TestFolder 定义测试需要的信息
-func (h BambooApp) TestFolder() string {
-	return filepath.Join(h.BaseFolder(), "test")
+func (app BambooApp) TestFolder() string {
+	if val, ok := app.configMap["test_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "test")
 }
 
 // NewBambooApp 初始化BambooApp
@@ -93,5 +123,19 @@ func NewBambooApp(params ...interface{}) (interface{}, error) {
 	// 有两个参数，一个是容器，一个是baseFolder
 	container := params[0].(framework.Container)
 	baseFolder := params[1].(string)
-	return &BambooApp{baseFolder: baseFolder, container: container}, nil
+	// 如果没有设置，则使用参数
+	if baseFolder == "" {
+		flag.StringVar(&baseFolder, "base_folder", "", "base_folder参数, 默认为当前路径")
+		flag.Parse()
+	}
+	appId := uuid.New().String()
+	configMap := map[string]string{}
+	return &BambooApp{baseFolder: baseFolder, container: container, appId: appId, configMap: configMap}, nil
+}
+
+// LoadAppConfig 加载配置map
+func (app *BambooApp) LoadAppConfig(kv map[string]string) {
+	for key, val := range kv {
+		app.configMap[key] = val
+	}
 }

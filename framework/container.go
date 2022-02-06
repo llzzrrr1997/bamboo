@@ -59,10 +59,10 @@ func (bamboo *BambooContainer) PrintProviders() []string {
 // Bind 将服务容器和关键字做了绑定
 func (bamboo *BambooContainer) Bind(provider ServiceProvider) error {
 	bamboo.lock.Lock()
-	defer bamboo.lock.Unlock()
 	key := provider.Name()
 
 	bamboo.providers[key] = provider
+	bamboo.lock.Unlock()
 
 	// if provider is not defer
 	if provider.IsDefer() == false {
