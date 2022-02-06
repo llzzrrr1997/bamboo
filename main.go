@@ -1,32 +1,33 @@
 package main
 
 import (
-	"context"
-	"github.com/llzzrrr1997/bamboo/framework/gin"
-	"github.com/llzzrrr1997/bamboo/framework/middleware"
-	"github.com/llzzrrr1997/bamboo/provider/demo"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"github.com/llzzrrr1997/bamboo/app/console"
+	"github.com/llzzrrr1997/bamboo/app/http"
+	"github.com/llzzrrr1997/bamboo/framework"
+	"github.com/llzzrrr1997/bamboo/framework/provider/app"
+	"github.com/llzzrrr1997/bamboo/framework/provider/kernel"
 )
 
 func main() {
+	/*// 创建engine结构
 	core := gin.New()
+	// 绑定具体的服务
+	core.Bind(&app.BambooAppProvider{})
+	core.Bind(&demo.DemoProvider{})
+
 	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
-	_ = core.Bind(&demo.DemoServiceProvider{})
-	//core.Use(middleware.Timeout(3 * time.Second))
-	registerRouter(core)
+
+	bambooHttp.Routes(core)
+
 	server := &http.Server{
 		Handler: core,
-		Addr:    "localhost:8888",
+		Addr:    ":8888",
 	}
+
 	// 这个goroutine是启动服务的goroutine
 	go func() {
-		_ = server.ListenAndServe()
+		server.ListenAndServe()
 	}()
 
 	// 当前的goroutine等待信号量
@@ -42,5 +43,18 @@ func main() {
 
 	if err := server.Shutdown(timeoutCtx); err != nil {
 		log.Fatal("Server Shutdown:", err)
+	}*/
+	// 初始化服务容器
+	container := framework.NewBambooContainer()
+	// 绑定App服务提供者
+	container.Bind(&app.BambooAppProvider{})
+	// 后续初始化需要绑定的服务提供者...
+
+	// 将HTTP引擎初始化,并且作为服务提供者绑定到服务容器中
+	if engine, err := http.NewHttpEngine(); err == nil {
+		container.Bind(&kernel.BambooKernelProvider{HttpEngine: engine})
 	}
+
+	// 运行root命令
+	console.RunCommand(container)
 }
